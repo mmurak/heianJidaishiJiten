@@ -1,0 +1,27 @@
+#TextEntry{
+	width: 30%;
+}
+#PageEntry{
+	width: 20%;
+}
+#KanjiEntry{
+	width: 10%;
+}
+table, th, td{
+	border:1px solid #333;
+	border-collapse: collapse
+}
+th{
+	background-color: lightgray;
+}
+td:nth-child(1), th:nth-child(1) {
+	text-align: center;
+}
+.footer{
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	background-color: lightgray;
+	text-align: center;
+}
