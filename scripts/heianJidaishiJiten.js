@@ -6,7 +6,8 @@ class GlobalManager {
 		this.pageEntry.addEventListener("focus", () => {this.pageEntry.select();});
 		this.kanjiEntry = document.getElementById("KanjiEntry");
 		this.kanjiEntry.addEventListener("focus", () => {this.kanjiEntry.select();});
-		document.addEventListener("keyup", (evt) => {
+		document.addEventListener("keydown", (evt) => {
+			if (evt.isComposing)  return;
 			if (evt.key == "Enter") {
 				if (isElementFocused(this.textEntry)) {
 					phoneticSearch();
@@ -247,6 +248,9 @@ function figureSection() {
 	pad += "<li><a href='javascript:windowOpen(" + G.local + ", 3, 52)'>馬具図</a></li>";
 	pad += "<li><a href='javascript:windowOpen(" + G.local + ", 3, 53)'>時刻図・方位図</a></li>";
 	pad += "</ul>";
+	pad += "<br>";
+	pad += "<br>";
+	pad += "<br>";
 	G.displayArea.innerHTML = pad;
 }
 
