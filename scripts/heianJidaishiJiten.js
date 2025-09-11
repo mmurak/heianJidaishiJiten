@@ -72,6 +72,7 @@ function phoneticSearch() {
 
 function directOpen() {
 	const value = G.pageEntry.value;
+	if (value == "")  return;
 	const m = value.match(/^(\d+)$/);
 	if (!m) {
 		alert("半角数字で入力してください。");
