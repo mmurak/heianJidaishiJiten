@@ -72,6 +72,7 @@ class GlobalManager {
 }
 const G = new GlobalManager();
 const R = new RegulatorNeo();
+displayManual();
 G.textEntry.focus();
 
 function phoneticSearch() {
@@ -297,17 +298,19 @@ function summarySection() {
 
 function eraseTextEntry() {
 	G.textEntry.value = "";
+	displayMsanual();
 	G.textEntry.focus();
 }
 
 function erasePageEntry() {
 	G.pageEntry.value = "";
+	displayMsanual();
 	G.pageEntry.focus();
 }
 
 function eraseKanjiEntry() {
 	G.kanjiEntry.value = "";
-	G.displayArea.innerHTML = "";
+	displayManual();
 	G.kanjiEntry.focus();
 }
 
@@ -322,4 +325,25 @@ function windowOpen(local, targetVol, idx) {
 
 function isElementFocused(elem) {
 	return document.activeElement === elem && document.hasFocus();
+}
+
+function displayManual() {
+	let message = "<h3>使用方法</h3>";
+	message += "<ul>";
+	message += "<li>読み方が分かっている語";
+	message += "<ul>";
+	message += "<li>［50音順検索］欄にひらがなで検索語を入力すると、本文の該当ページが別タブで開きます。</li>";
+	message += "</ul></li>"
+	message += "<li>読み方が分からない語";
+	message += "<ol>";
+	message += "<li>［先頭の漢字］欄に漢字を1文字（複数入力した場合は先頭の漢字が使用されます）入力すると、指定した先頭の1文字が記載されている索引巻の該当ページに関する情報が一覧表示されます。</li>";
+	message += "<li>その中の［索引頁］列の数字をクリックすると、索引巻の該当ページが別タブで開きます。</li>";
+	message += "<li>定義されているページが分かったら、［本文ページ］欄にその数値を入力すると、本文の該当ページが別タブで開きます。</li>";
+	message += "</ol></li>"
+	message += "<li>その他の読み物";
+	message += "<ul>";
+	message += "<li>［各種情報］のドロップダウンボックスから指定します。</li>";
+	message += "</ul></li>"
+	message += "</ul>";
+	G.displayArea.innerHTML = message;
 }
