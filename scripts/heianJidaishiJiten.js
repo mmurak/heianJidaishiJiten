@@ -298,13 +298,13 @@ function summarySection() {
 
 function eraseTextEntry() {
 	G.textEntry.value = "";
-	displayMsanual();
+	displayManual();
 	G.textEntry.focus();
 }
 
 function erasePageEntry() {
 	G.pageEntry.value = "";
-	displayMsanual();
+	displayManual();
 	G.pageEntry.focus();
 }
 
