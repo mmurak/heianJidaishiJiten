@@ -8,11 +8,15 @@
 	</head>
 	<body>
 		<h3>角川書店『平安時代史事典』（1994）検索</h3>
-		<label for="TextEnrtry">50音順検索：<input type="textfield" id="TextEntry" placeholder="ひらがなで入力"/></label>
-		<br>
-		<label for="TextEnrtry">本文ページ：<input type="textfield" id="PageEntry" placeholder="半角数字で入力"/>
-		<br>
-		<label for="TextEnrtry">先頭の漢字：<input type="textfield" id="KanjiEntry" placeholder="漢字を入力"/>
+		<form id="KanaForm">
+			<label for="TextEnrtry">50音順検索：<input type="textfield" id="TextEntry" placeholder="ひらがなで入力"/></label>
+		</form>
+		<form id="PageForm">
+			<label for="TextEnrtry">本文ページ：<input type="textfield" id="PageEntry" placeholder="半角数字で入力"/></label>
+		</form>
+		<form id="KanjiForm">
+			<label for="TextEnrtry">先頭の漢字：<input type="textfield" id="KanjiEntry" placeholder="漢字を入力"/></label>
+		</form>
 		<br>
 		<label for="TextEnrtry">各種情報：
 		<select id="Dossiers">

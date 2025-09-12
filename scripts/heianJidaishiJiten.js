@@ -1,25 +1,17 @@
 class GlobalManager {
 	constructor() {
+		this.kanaForm = document.getElementById("KanaForm");
 		this.textEntry = document.getElementById("TextEntry");
 		this.textEntry.addEventListener("focus", () => {this.textEntry.select();});
+		this.pageForm = document.getElementById("PageForm");
 		this.pageEntry = document.getElementById("PageEntry");
 		this.pageEntry.addEventListener("focus", () => {this.pageEntry.select();});
+		this.kanjiForm = document.getElementById("KanjiForm");
 		this.kanjiEntry = document.getElementById("KanjiEntry");
 		this.kanjiEntry.addEventListener("focus", () => {this.kanjiEntry.select();});
+
 		document.addEventListener("keydown", (evt) => {
-			if (evt.isComposing)  return;
-			if (evt.key == "Enter") {
-				if (isElementFocused(this.textEntry)) {
-					phoneticSearch();
-					this.textEntry.focus();
-				} else if (isElementFocused(this.pageEntry)) {
-					directOpen();
-					this.pageEntry.focus();
-				} else if (isElementFocused(this.kanjiEntry)) {
-					kanjiSearch();
-					this.kanjiEntry.focus();
-				}
-			} else if (evt.key == "Escape") {
+			if (evt.key == "Escape") {
 				if (isElementFocused(this.textEntry)) {
 					eraseTextEntry();
 				} else if (isElementFocused(this.pageEntry)) {
@@ -29,6 +21,31 @@ class GlobalManager {
 				}
 			}
 		});
+
+		this.kanaForm.addEventListener("keydown", (evt) => {
+			if (evt.key === "Enter" && !evt.isComposing) {
+				evt.preventDefault();
+				phoneticSearch();
+				this.textEntry.focus();
+			}
+		});
+
+		this.pageForm.addEventListener("keydown", (evt) => {
+			if (evt.key === "Enter" && !evt.isComposing) {
+				evt.preventDefault();
+				directOpen();
+				this.pageEntry.focus();
+			}
+		});
+
+		this.kanjiForm.addEventListener("keydown", (evt) => {
+			if (evt.key === "Enter" && !evt.isComposing) {
+				evt.preventDefault();
+				kanjiSearch();
+				this.kanjiEntry.focus();
+			}
+		});
+
 		this.dossiers = document.getElementById("Dossiers");
 		this.dossiers.addEventListener("change", (evt) => {
 			dossierSelected();

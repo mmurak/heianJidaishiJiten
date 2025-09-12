@@ -7,6 +7,10 @@
 #KanjiEntry{
 	width: 10%;
 }
+form {
+	margin: 0;
+	padding: 0;
+}
 table, th, td{
 	border:1px solid #333;
 	border-collapse: collapse
