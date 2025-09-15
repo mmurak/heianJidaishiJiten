@@ -15,7 +15,7 @@
 			<label for="TextEnrtry">本文ページ：<input type="textfield" id="PageEntry" placeholder="半角数字で入力"/></label>
 		</form>
 		<form id="KanjiForm">
-			<label for="TextEnrtry">先頭の漢字：<input type="textfield" id="KanjiEntry" placeholder="漢字を入力"/></label>
+			<label for="TextEnrtry"><a href="javascript:openDialogBox()" style="text-decoration: none;color: black;">先頭の漢字</a>：<input type="textfield" id="KanjiEntry" placeholder="漢字を入力"/></label>
 		</form>
 		<br>
 		<label for="TextEnrtry">各種情報：
@@ -43,8 +43,17 @@
 		使用するには国立国会図書館デジタルコレクションの<a href="https://www.ndl.go.jp/jp/use/digital_transmission/individuals_index.html">個人向けデジタル化資料送信サービス</a>に登録、ログインしておく必要があります。
 		</div>
 
+		<dialog id="DialogBox">
+			<button id="DialogCloseButton">Cancel</button>
+			<label for="Shikaku">四角號碼：
+				<input type="textfield" id="FCEntry" class="EntryCommon" name="Shikaku"></input>
+			</label>
+			<div id="ResultArea" class="Content"></div>
+		</dialog>
+
 		<script src="./assets/phoneticIndex.js"></script>
 		<script src="./assets/strokeCountIndex.js"></script>
+		<script src="./assets/fourCornerMini.js"></script>
 		<script src="./scripts/regulatorNeo.js"></script>
 		<script src="./scripts/heianJidaishiJiten.js"></script>
 	</body>

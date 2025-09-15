@@ -52,6 +52,31 @@ class GlobalManager {
 		});
 		this.displayArea = document.getElementById("DisplayArea");
 		//
+		this.dialogBox = document.getElementById("DialogBox");
+		this.dialogCloseButton = document.getElementById("DialogCloseButton");
+		this.dialogCloseButton.addEventListener("click", (evt) => {
+			closeDialogBox();
+		});
+		this.fcEntry = document.getElementById("FCEntry");
+		this.fcEntry.addEventListener("input", () => {
+			let target = this.fcEntry.value;
+			target = target.replaceAll(/\s/g, "");
+			if (target.match(/[^\d\/.]/))  return;
+			if (target.match(/^\s*$/)) {
+				return;
+			}
+			const pvalue = preProcess(target);
+			const regexp = new RegExp("^" + pvalue);
+			this.cycle = 0;
+			search(regexp);
+		});
+		this.fcEntry.addEventListener("keydown", (evt) => {
+			if (evt.key == "Escape") {
+				this.fcEntry.value = "";
+			}
+		});
+		this.resultArea = document.getElementById("ResultArea");
+		//
 		this.volInfo = [
 			[],
 			["https://dl.ndl.go.jp/pid/13207693/1/", "平安時代史事典-上巻.pdf", 23, 741],
@@ -68,6 +93,7 @@ class GlobalManager {
 		this.LOCALIDX = 1;
 		this.OFFSET = 2;
 		this.FRAMEMAX = 3;
+		this.MAXITEMS = 50;
 	}
 }
 const G = new GlobalManager();
@@ -346,4 +372,94 @@ function displayManual() {
 	message += "</ul></li>"
 	message += "</ul>";
 	G.displayArea.innerHTML = message;
+}
+
+function openDialogBox() {
+	G.fcEntry.value = "";
+	G.resultArea.innerHTML = "";
+	G.dialogBox.showModal();
+	G.fcEntry.focus();
+}
+function closeDialogBox() {
+	G.dialogBox.close();
+	G.kanjiEntry.focus();
+}
+
+function preProcess(content) {
+	content = content.replaceAll(/\s/g, "");
+	let novoContent = "";
+	let newContent = "";
+	do {
+		novoContent = content.replace(/(\d)\/(\d)/, "[$1$2]");
+		if (novoContent == content) {
+			return content;		// EXIT POINT
+		}
+		content = novoContent;
+		newContent = "";
+		do {
+			newContent = content.replace(/\]\/(\d)/, "$1]");
+			if (newContent == content) {
+				break;
+			}
+			content = newContent;
+		} while (true);
+	} while (true);
+}
+
+function search(regexp) {
+	G.resultArea.innerHTML = "";
+	const table = document.createElement("table");
+	G.resultArea.appendChild(table);
+	const colMax = 4;
+	let colSize = colMax + 1;
+	let row;
+	let matchCount = 0;
+	const startPoint = G.MAXITEMS * G.cycle;
+	const endPoint = G.MAXITEMS * (G.cycle + 1);
+	if (G.cycle > 0) {
+		row = table.insertRow(-1);
+		const cell = row.insertCell(0);
+		cell.innerHTML = "　<< 前";
+		cell.style = "color: green;";
+		cell.addEventListener("click", (evt) => {
+			G.cycle--;
+			search(regexp);
+			return;
+		});
+	}
+	for (let entry of fourCornerMini) {
+		if (entry[1].match(regexp)) {
+			matchCount++;
+			if (matchCount <= startPoint) continue;
+			if (colSize > colMax) {
+				row = table.insertRow(-1);
+				colSize = 0;
+			}
+			const cell = row.insertCell(colSize);
+			colSize++;
+			cell.innerHTML = entry[0] + " (" + regulate(entry[1]) + ")";
+			cell.addEventListener("click", (evt) => {
+//				if (evt.shiftKey) {
+					G.kanjiEntry.value = entry[0];
+					closeDialogBox();
+//				}
+			});
+			if (matchCount >= endPoint) {
+				row = table.insertRow(-1);
+				const cell = row.insertCell(0);
+				cell.innerHTML = "　次 >>";
+				cell.style = "color: green;";
+				cell.addEventListener("click", (evt) => {
+					G.cycle++;
+					search(regexp);
+					return;
+				});
+				return;
+			}
+		}
+	}
+}
+
+function regulate(str) {
+	return str.slice(0, 4) + "<span class='subscript'>" + str.slice(4) + "</span>";
 }
