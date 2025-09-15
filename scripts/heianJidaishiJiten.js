@@ -143,6 +143,7 @@ function directOpen() {
 function kanjiSearch() {
 	G.displayArea.innerHTML = "";
 	const table = document.createElement("table");
+	table.id = "Sakuin";
 	const thead = document.createElement("thead");
 	const headerRec = document.createElement("tr");
 	const th1 = document.createElement("th");
