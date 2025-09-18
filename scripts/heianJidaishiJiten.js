@@ -57,9 +57,14 @@ class GlobalManager {
 		this.dialogCloseButton.addEventListener("click", (evt) => {
 			closeDialogBox();
 		});
+		this.dialogBox.addEventListener("close", () => {
+			this.kanjiEntry.focus();
+		});
+		this.resultArea = document.getElementById("ResultArea");
 		this.fcEntry = document.getElementById("FCEntry");
 		this.fcEntry.addEventListener("input", () => {
 			let target = this.fcEntry.value;
+			this.resultArea.innerHTML = "";
 			target = target.replaceAll(/\s/g, "");
 			if (target.match(/[^\d\/.]/))  return;
 			if (target.match(/^\s*$/)) {
@@ -68,14 +73,8 @@ class GlobalManager {
 			const pvalue = preProcess(target);
 			const regexp = new RegExp("^" + pvalue);
 			this.cycle = 0;
-			search(regexp);
+			fcSearch(regexp);
 		});
-		this.fcEntry.addEventListener("keydown", (evt) => {
-			if (evt.key == "Escape") {
-				this.fcEntry.value = "";
-			}
-		});
-		this.resultArea = document.getElementById("ResultArea");
 		//
 		this.volInfo = [
 			[],
@@ -407,8 +406,7 @@ function preProcess(content) {
 	} while (true);
 }
 
-function search(regexp) {
-	G.resultArea.innerHTML = "";
+function fcSearch(regexp) {
 	const table = document.createElement("table");
 	G.resultArea.appendChild(table);
 	const colMax = 4;
@@ -424,7 +422,7 @@ function search(regexp) {
 		cell.style = "color: green;";
 		cell.addEventListener("click", (evt) => {
 			G.cycle--;
-			search(regexp);
+			fcSearch(regexp);
 			return;
 		});
 	}
@@ -452,7 +450,7 @@ function search(regexp) {
 				cell.style = "color: green;";
 				cell.addEventListener("click", (evt) => {
 					G.cycle++;
-					search(regexp);
+					fcSearch(regexp);
 					return;
 				});
 				return;
