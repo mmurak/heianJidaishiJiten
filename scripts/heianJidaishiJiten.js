@@ -407,6 +407,7 @@ function preProcess(content) {
 }
 
 function fcSearch(regexp) {
+	G.resultArea.innerHTML = "";
 	const table = document.createElement("table");
 	G.resultArea.appendChild(table);
 	const colMax = 4;
