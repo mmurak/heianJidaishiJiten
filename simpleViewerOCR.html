@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="kiwi-bird-blue.png?v=2">
+		<title>Simple PDF Viewer</title>
+		<!--link rel="stylesheet" href="./resources/youreiSearch.css"-->
+		<style>
+		.Header{
+			position: fixed;
+			top: 0;
+			left: 0;
+			padding: 5px;
+			width: 100%;
+			background-color: #cc99cc;
+			color: #000000;
+		}
+		#ZoomSlider{
+			margin: 0 15px 0 0;
+		}
+		#CreditInfo{
+			font-size: 80%;
+		}
+		</style>
+	</head>
+	<body id="Body">
+		<div class="Header" id="HeaderID">
+			<div style="float: left;">
+				<button id="PrevPageButton">前ページ (Shift+↑)</button>
+				<label id="CurrentPage"></label>
+				<button id="NextPageButton">次ページ (Shift+↓)</button>
+				<input textfield id="PageArea"/>
+				<button id="GotoContentsPageButton">Go</button>
+			</div>
+			<div style="float: right;">
+				<span id="CreditInfo"></span>
+				<button id="DefaultZoomButton">幅に合わせる</button>
+				<input type="range" id="ZoomSlider" min="0.0" max="2.25" step="0.05" value="1.5" />
+			</div>
+		</div>
+		<hr>
+		<div class="Contents">
+			<canvas id="the-canvas"></canvas>
+		</div>
+
+<script src="./assets/volInfo.js"></script>
+<script src="./resources/pdfjs/build/pdf.mjs" type="module"></script>
+<script src='./resources/tesseract/tesseract.min.js'></script>
+<script type="module">
+
+class GlobalManager {
+	constructor() {
+		this.pageNumber = 1;
+		this.pdfdata;
+		this.numOfPages = 0;
+		this.body = document.getElementById("Body");
+		this.prevPageButton = document.getElementById("PrevPageButton");
+		this.currentPage = document.getElementById("CurrentPage");
+		this.nextPageButton = document.getElementById("NextPageButton");
+		this.pageArea = document.getElementById("PageArea");
+		this.gotoContentsPageButton = document.getElementById("GotoContentsPageButton");
+		this.defaultZoomButton = document.getElementById("DefaultZoomButton");
+		this.zoomSlider = document.getElementById("ZoomSlider");
+		this.zoomFactor = 1.00;
+		this.creditInfo = document.getElementById("CreditInfo");
+		this.headerID = document.getElementById("HeaderID");
+
+		this.isDragging = false;
+		this.startX;
+		this.startY;
+		this.currentX;
+		this.currentY;
+
+		this.canvas = document.getElementById('the-canvas');
+		this.context = this.canvas.getContext('2d');
+
+		this.backupCanvas;
+	}
+}
+const G = new GlobalManager();
+
+const params = new Proxy(new URLSearchParams(window.location.search),
+	{
+		get: (searchParams, prop) => searchParams.get(prop) ?? "",
+	});
+const contentsURL = params["path"];
+const displayOffset = (params["offset"] != "") ? Number(params["offset"]) : 0;
+const contentsPage = (contentsURL != "") ? Number(params["page"]) : 1;
+G.pageNumber = contentsPage;
+const pageReverse = (params["pageReverse"] != "") ? Number(params["pageReverse"]) : 0;
+G.creditInfo.innerHTML = (params["info"] != "") ? params["info"] : "";
+const color = (params["color"] != "") ? params["color"] : "cc99cc";
+G.headerID.style.backgroundColor = "#" + color;
+
+window.addEventListener("resize", drawPage);
+G.prevPageButton.addEventListener("click", prevPage);
+G.nextPageButton.addEventListener("click", nextPage);
+G.gotoContentsPageButton.addEventListener("click", gotoContentsPage);
+G.canvas.addEventListener("mousedown", (e) => {
+	G.isDragging = true;
+	G.startX = e.offsetX;
+	G.startY = e.offsetY;
+});
+G.canvas.addEventListener("mousemove", (e) => {
+	if (!G.isDragging)  return;
+	G.currentX = e.offsetX;
+	G.currentY = e.offsetY;
+//	
+	G.context.drawImage(G.backupCanvas, 0, 0);
+	G.context.strokeStyle = "blue";
+	G.context.strokeRect(G.startX, G.startY, G.currentX - G.startX, G.currentY - G.startY);
+});
+G.canvas.addEventListener("mouseup", (e) => {
+	G.isDragging = false;
+	G.currentX = e.offsetX;
+	G.currentY = e.offsetY;
+
+	const width = Math.abs(G.currentX - G.startX);
+	const height = Math.abs(G.currentY - G.startY);
+	const x = Math.min(G.startX, G.currentX);
+	const y = Math.min(G.startY, G.currentY);
+
+	if (width > 0 && height > 0) { // 範囲が0でない場合のみコピー
+		const newCanvas = document.createElement('canvas');
+		newCanvas.width = width;
+		newCanvas.height = height;
+		const newCtx = newCanvas.getContext('2d');
+
+		newCtx.drawImage(G.backupCanvas, x, y, width, height, 0, 0, width, height);
+
+		Tesseract.recognize(newCanvas, "eng", { /* logger: m => console.log(m) */ })
+		.then(({ data: { text } }) => {
+			text = text.replaceAll("\n", "");
+			text = text.replaceAll(/[^\d\s\-]/g, "");
+			text = text.replaceAll(/-/g, " ");
+			G.pageArea.value = text;
+		})
+		.catch((error) => {
+			console.error(error)
+		});
+	}
+});
+
+document.addEventListener("keydown", (evt) => {
+	if (evt.shiftKey) {
+		if (evt.key == "ArrowUp") {
+			prevPage();
+			evt.preventDefault();
+		} else if (evt.key == "ArrowDown") {
+			nextPage();
+			evt.preventDefault();
+		}
+	} else if (evt.key == "Enter") {
+		gotoContentsPage();
+	} else if (evt.key == "Escape") {
+		G.pageArea.value = "";
+	}
+});
+
+let { pdfjsLib } = globalThis;
+// The workerSrc property shall be specified.
+pdfjsLib.GlobalWorkerOptions.workerSrc = './resources/pdfjs/build/pdf.worker.mjs';
+
+// Asynchronous download of PDF
+let loadingTask = pdfjsLib.getDocument(contentsURL);
+loadingTask.promise.then((pdf) => {
+	G.pdfdata = pdf;
+	G.numOfPages = pdf.numPages;
+	drawPage();		// render 1st page
+}, (reason) => {
+	console.error(reason);
+});
+
+G.defaultZoomButton.addEventListener("click", () => {
+	G.zoomFactor = 1.0;
+	G.zoomSlider.value = 1.5;
+	drawPage();
+});
+G.zoomSlider.addEventListener("input", (e) => {
+	G.zoomFactor = 2.5 - G.zoomSlider.value;
+	drawPage();
+});
+
+function drawPage() {
+	G.pdfdata.getPage(G.pageNumber).then((page) => {
+
+		let viewport = page.getViewport({scale: G.body.clientWidth / page.getViewport({scale: Number(G.zoomFactor)}).width});
+
+		// Prepare canvas using PDF page dimensions
+		G.canvas.height = viewport.height;
+		G.canvas.width = viewport.width;
+
+		// Render PDF page into canvas context
+		let renderContext = {
+			canvasContext: G.context,
+			viewport: viewport
+		};
+		let renderTask = page.render(renderContext)
+		.promise.then(() => {
+			G.backupCanvas = cloneCanvas(G.canvas);
+		})
+		.catch(() => {});
+	});
+}
+
+function cloneCanvas(oldCanvas) {
+	let newCanvas = document.createElement("canvas");
+	let context = newCanvas.getContext("2d");
+	newCanvas.width = oldCanvas.width;
+	newCanvas.height = oldCanvas.height;
+	context.drawImage(oldCanvas, 0, 0);
+	return newCanvas;
+}
+
+function prevPage() {
+	if (pageReverse == 0) {
+		physicalPrevPage();
+		window.scrollTo(0, document.body.scrollHeight);
+} else {
+		physicalNextPage();
+		window.scrollTo(document.body.scrollWidth, document.body.scrollHeight);
+	}
+}
+
+function nextPage() {
+	if (pageReverse == 0) {
+		physicalNextPage();
+		window.scrollTo(document.body.scrollWidth, 0);
+	} else {
+		physicalPrevPage();
+		window.scrollTo(0, 0);
+	}
+}
+
+function physicalPrevPage() {
+	G.pageNumber--;
+	if (G.pageNumber < 1) {
+		G.pageNumber = 1;
+		return;
+	}
+	drawPage();
+}
+
+function physicalNextPage() {
+	G.pageNumber++;
+	if (G.pageNumber > G.numOfPages) {
+		G.pageNumber--;
+		return;
+	}
+	drawPage();
+}
+
+function gotoContentsPage() {
+	const m = G.pageArea.value.match(/^\s*(\d+)\s*$/);
+	if (m == null) {
+		return;
+	}
+	const page = Number(m[1]);
+	const volFrame = getFrameNoForContents(page);
+	const volNo = volFrame[0];
+	let frameWithoutPreamble = volFrame[1];
+	const path = "./assets/" + volInfo[volNo][1];
+	window.open("./simpleViewer.html?path=" + path + "&page=" + (frameWithoutPreamble + volInfo[volNo][2]) + "&color=ffefd5");
+}
+
+</script>
+
+</body>
+</html>

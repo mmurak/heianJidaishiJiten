@@ -21,6 +21,9 @@ th{
 #Sakuin td:nth-child(1), #Sakuin th:nth-child(1) {
 	text-align: center;
 }
+.subscript {
+	font-size: 70%;
+}
 .footer{
 	position: fixed;
 	bottom: 0;
