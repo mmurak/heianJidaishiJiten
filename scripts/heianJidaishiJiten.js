@@ -521,7 +521,8 @@ function summarySection() {
 
 // 使用方法を表示する。
 function displayManual() {
-	let message = "<h3>使用方法</h3>";
+	let message = "<h3>2026年4月22日より上・下巻は館内限定に変更されました。</h3>";
+	message += "<h3>使用方法</h3>";
 	message += "<ul>";
 	message += "<li>読み方が分かっている語";
 	message += "<ul>";
